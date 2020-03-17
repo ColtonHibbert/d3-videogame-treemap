@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta lang="en-us" charset="utf-8">
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <h1 id="title">Video Game Sales</h1> 
+        <h2 id="description">Top 100 most sold games by platform</h2>
+        <div id="d3render"></div>
+    </body>
+    <!--<script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>-->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script>
+        
+        async function runAsync() {
+            const gameData = await fetch('https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json')
+            .then(res => res.json())
+            .catch(err => console.log(err))
+
+            const width = 1000;
+            const height = 1000;
+
+            colorsArray = [
+                'rgb(76, 146, 195)', 'rgb(255, 201, 147)', 'rgb(222, 82, 83)', 'rgb(209, 192, 221)', 
+                'rgb(233, 146, 206)', 'rgb(210, 210, 210)', 'rgb(190, 210, 237)', 'rgb(86, 179, 86)',
+                'rgb(255, 173, 171)', 'rgb(163, 120, 111)', 'rgb(249, 197, 219)', 'rgb(201, 202, 78)',
+                'rgb(255, 153, 62)', 'rgb(173, 229, 161)', 'rgb(169, 133, 202)', 'rgb(208, 176, 169)',
+                'rgb(153, 153, 153)', 'rgb(226, 226, 164)'
+            ];
+
+            const treemap = (data) => d3.treemap()
+                .size([width, height])
+                .padding(1)
+                (d3.hierarchy(data)
+                    .sum(d => d.value)
+                    .sort((a,b) => b.value - a.value)
+                )
+            
+            const root = treemap(gameData);
+
+            const svg = d3.select('#d3render')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', 1400)
+            .attr('viewBox', [0,0, width, 1400 ])
+            .style('background-color', 'white')
+
+            const leaf = svg.selectAll('g')
+            .data(root.leaves())
+            .join('g')
+                .attr('transform', d => `translate(${d.x0}, ${d.y0})`)
+                
+            const categoryArray = [
+                'Wii','GB', 'PS2', 'SNES', 'GBA', '2600', 
+                'DS', 'PS3', '3DS', 'PS', 'XB', 'PSP', 
+                'X360','NES', 'PS4', 'N64', 'PC', 'XOne'
+            ];
+
+
+            leaf.append('rect')
+            .attr('width', d => d.x1 - d.x0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('class', 'tile')
+            .attr('data-name', d => d.data.name)
+            .attr('data-category', d => d.data.category)
+            .attr('data-value',d => d.data.value)
+            .attr('fill', d => {
+                console.log('d in leaf append rect', d)
+                if(d.data.category === 'Wii') {
+                    return colorsArray[0]
+                }
+                if(d.data.category === 'GB') {
+                    return colorsArray[1]
+                }
+                if(d.data.category === 'PS2') {
+                    return colorsArray[2]
+                }
+                if(d.data.category === 'SNES') {
+                    return colorsArray[3]
+                }
+                if(d.data.category === 'GBA') {
+                    return colorsArray[4]
+                }
+                if(d.data.category === '2600') {
+                    return colorsArray[5]
+                }
+                if(d.data.category === 'DS') {
+                    return colorsArray[6]
+                }
+                if(d.data.category === 'PS3') {
+                    return colorsArray[7]
+                }
+                if(d.data.category === '3DS') {
+                    return colorsArray[8]
+                }
+                if(d.data.category === 'PS') {
+                    return colorsArray[9]
+                }
+                if(d.data.category === 'XB') {
+                    return colorsArray[10]
+                }
+                if(d.data.category === 'PSP') {
+                    return colorsArray[11]
+                }
+                if(d.data.category === 'X360') {
+                    return colorsArray[12]
+                }
+                if(d.data.category === 'NES') {
+                    return colorsArray[13]
+                }
+                if(d.data.category === 'PS4') {
+                    return colorsArray[14]
+                }
+                if(d.data.category === 'N64') {
+                    return colorsArray[15]
+                }
+                if(d.data.category === 'PC') {
+                    return colorsArray[16]
+                }
+                if(d.data.category === 'XOne') {
+                    return colorsArray[17]
+                }
+            })
+            .on('mouseover', (d) => {
+                const videoGame = d;
+            
+                d3.select('#tooltip')
+                .attr('data-name', videoGame.data.name)
+                .attr('data-category', videoGame.data.category)
+                .attr('data-value', videoGame.data.value)
+                .style('visibility', 'visible')
+                .style('left', event.pageX + 'px')
+                .style('top', event.pageY + 'px')
+                
+                d3.select('#tooltipdata1')
+                .text(`Name: ${videoGame.data.name}`)
+
+                d3.select('#tooltipdata2')
+                .text(`Category: ${videoGame.data.category}`)
+
+                d3.select('#tooltipdata3')
+                .text(`Value: ${videoGame.data.value}`)
+            })
+            .on('mouseout', (d) => {
+                d3.select('#tooltip')
+                .style('visibility', 'hidden')
+            })
+
+
+            leaf
+            .append('text')
+            .style('font-size', '.5em')
+            .attr('x', 5)
+            .attr('y', 10)
+            .text((d) => d.data.name)
+
+
+            const legend = svg.append('g')
+            .attr('id', 'legend')
+            .attr('transform', 'translate(200, 1050)')
+            .attr('width', 600)
+            .attr('height', 300)
+            .style('background-color', 'blue')
+
+
+            legend.selectAll('rect')
+            .data(colorsArray)
+            .enter()
+            .append('rect')
+            .attr('class', 'legend-item')
+            .attr('width', 20)
+            .attr('height', 20)
+            .attr('x', (d, i) => {
+                if(i >= 6 && i <= 11) {
+                    return 200;
+                }
+                if(i > 11) {
+                    return 400;
+                }
+            })
+            .attr('y', (d, i) => {
+                if(i < 6) {
+                    return i * 50;
+                }
+                if(i >= 6 && i <= 11) {
+                    return (i - 6) * 50;
+                }
+                if(i > 11) {
+                    return (i - 12) * 50;
+                }
+            })
+            .style('fill', d => d)
+            
+
+            d3.select('#legend')
+            .selectAll('text')
+            .data(categoryArray)
+            .enter()
+            .append('text')
+            .attr('x', (d, i) => {
+                if(i >= 6 && i <= 11) {
+                    return 225;
+                }
+                if(i > 11) {
+                    return 425;
+                }
+                return 25
+            })
+            .attr('y', (d, i) => {
+                if(i < 6) {
+                    return i * 50 + 15;
+                }
+                if(i >= 6 && i <= 11) {
+                    return (i - 6) * 50 + 15;
+                }
+                if(i > 11) {
+                    return (i - 12) * 50 + 15;
+                }
+            })
+            .text(d => d )
+
+            const tooltip = d3.select('#d3render')
+            .append('div')
+            .attr('id', 'tooltip')
+            .attr('width', '150px')
+            .attr('height', '120px')
+            .style('background-color', 'lightseagreen')
+            .style('opacity', .85)
+            .style('visibility', 'hidden')
+            .style('z-index', 1)
+            .style('flex-direction', 'column')
+            .style('align-items', 'center')
+            .style('position', 'absolute')
+            .style('border-radius', '5px')
+            .style('padding', '5px')
+            .style('text-align', 'center')
+
+            const tooltipData1 = d3.select('#tooltip')
+            .append('div')
+            .attr('id', 'tooltipdata1')
+            .attr('width', '150px')
+            .attr('height', '40px')
+
+            const tooltipData2 = d3.select('#tooltip')
+            .append('div')
+            .attr('id', 'tooltipdata2')
+            .attr('width', '150px')
+            .attr('height', '40px')
+
+            const tooltipData3 = d3.select('#tooltip')
+            .append('div')
+            .attr('id', 'tooltipdata3')
+            .attr('width', '150px')
+            .attr('height', '40px')
+
+        }
+        runAsync();
+    </script>
+</html>
